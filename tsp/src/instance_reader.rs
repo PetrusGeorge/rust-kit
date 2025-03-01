@@ -1,5 +1,5 @@
 use core::panic;
-use tsplib::{EdgeWeight, EdgeWeightType, NodeCoord};
+use tsplib::{EdgeWeight, EdgeWeightType, NodeCoord, Type};
 
 #[derive(Debug)]
 pub struct Instance {
@@ -189,17 +189,26 @@ fn geo(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
 }
 
 pub fn read_data(file_path: &str) -> Instance {
-    let instance = tsplib::read(file_path).unwrap();
+    let instance = tsplib::read(file_path).expect("Something went wrong while parsing the file");
+
+    match instance.type_.expect("Instance type was not provided") {
+        Type::Tsp => (),
+        _ => panic!("This is not an tsp instance"),
+    }
 
     let dimension = instance.dimension;
     let name = instance.name;
 
-    let weight_type = instance.edge_weight_type.unwrap();
+    let weight_type = instance
+        .edge_weight_type
+        .expect("Instance does't suppy a edge weight type");
 
     use EdgeWeight::*;
     use EdgeWeightType::*;
     let matrix = if let Explicit = weight_type {
-        let matrix_type = instance.edge_weight.unwrap();
+        let matrix_type = instance
+            .edge_weight
+            .expect("Instance does't supply edge weight format in explicit type");
         match matrix_type {
             FullMatrix(vec) => full_to_full(&vec, dimension),
             UpperRow(vec) => upper_to_full(&vec, dimension),
@@ -212,7 +221,7 @@ pub fn read_data(file_path: &str) -> Instance {
         let coords = if let Some(NodeCoord::Two(coord)) = instance.node_coord {
             coord
         } else {
-            panic!("Somethin went wrong with the node coordinates type");
+            panic!("Something went wrong with the node coordinates type");
         };
         match weight_type {
             Euc2d => euc_2d(&coords),
