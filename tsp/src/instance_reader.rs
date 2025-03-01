@@ -1,14 +1,14 @@
 use core::panic;
-
 use tsplib::{EdgeWeight, EdgeWeightType, NodeCoord};
 
-#[derive(Default, Debug)]
+#[derive(Debug)]
 pub struct Instance {
     dimension: usize,
+    name: String,
     matrix: Vec<Vec<usize>>,
 }
 
-fn full_to_full(vec: Vec<usize>, n: usize) -> Vec<Vec<usize>> {
+fn full_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
     let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
 
     let mut index = 0;
@@ -23,7 +23,7 @@ fn full_to_full(vec: Vec<usize>, n: usize) -> Vec<Vec<usize>> {
     matrix
 }
 
-fn upper_to_full(vec: Vec<usize>, n: usize) -> Vec<Vec<usize>> {
+fn upper_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
     let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
 
     let mut index = 0;
@@ -38,12 +38,12 @@ fn upper_to_full(vec: Vec<usize>, n: usize) -> Vec<Vec<usize>> {
     matrix
 }
 
-fn upperdiag_to_full(vec: Vec<usize>, n: usize) -> Vec<Vec<usize>> {
+fn upperdiag_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
     let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
 
     let mut index = 0;
     for row in 0..n {
-        for col in row + 0..n {
+        for col in row..n {
             matrix[row][col] = vec[index];
             matrix[col][row] = vec[index];
             index += 1;
@@ -53,7 +53,7 @@ fn upperdiag_to_full(vec: Vec<usize>, n: usize) -> Vec<Vec<usize>> {
     matrix
 }
 
-fn lower_to_full(vec: Vec<usize>, n: usize) -> Vec<Vec<usize>> {
+fn lower_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
     let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
 
     let mut index = 0;
@@ -68,7 +68,7 @@ fn lower_to_full(vec: Vec<usize>, n: usize) -> Vec<Vec<usize>> {
     matrix
 }
 
-fn lowerdiag_to_full(vec: Vec<usize>, n: usize) -> Vec<Vec<usize>> {
+fn lowerdiag_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
     let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
 
     let mut index = 0;
@@ -83,7 +83,7 @@ fn lowerdiag_to_full(vec: Vec<usize>, n: usize) -> Vec<Vec<usize>> {
     matrix
 }
 
-fn euc_2d(coords: &Vec<(usize, f32, f32)>) -> Vec<Vec<usize>> {
+fn euc_2d(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
     let n = coords.len();
     let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
 
@@ -93,16 +93,35 @@ fn euc_2d(coords: &Vec<(usize, f32, f32)>) -> Vec<Vec<usize>> {
             .floor() as usize
     };
 
-    for row in 0..n {
-        for col in 0..n {
-            matrix[row][col] = calc_dist_euc(row, col);
+    for (i, row) in matrix.iter_mut().enumerate() {
+        for (j, value) in row.iter_mut().enumerate() {
+            *value = calc_dist_euc(i, j);
         }
     }
 
     matrix
 }
 
-fn att(coords: &Vec<(usize, f32, f32)>) -> Vec<Vec<usize>> {
+fn ceil_2d(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
+    let n = coords.len();
+    let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
+
+    let calc_dist_ceil = |i: usize, j: usize| {
+        ((coords[i].1 - coords[j].1).powf(2.0) + (coords[i].2 - coords[j].2).powf(2.0))
+            .sqrt()
+            .ceil() as usize
+    };
+
+    for (i, row) in matrix.iter_mut().enumerate() {
+        for (j, value) in row.iter_mut().enumerate() {
+            *value = calc_dist_ceil(i, j);
+        }
+    }
+
+    matrix
+}
+
+fn att(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
     let n = coords.len();
     let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
 
@@ -120,16 +139,16 @@ fn att(coords: &Vec<(usize, f32, f32)>) -> Vec<Vec<usize>> {
         }
     };
 
-    for row in 0..n {
-        for col in 0..n {
-            matrix[row][col] = calc_dist_att(row, col);
+    for (i, row) in matrix.iter_mut().enumerate() {
+        for (j, value) in row.iter_mut().enumerate() {
+            *value = calc_dist_att(i, j);
         }
     }
 
     matrix
 }
 
-fn geo(coords: &Vec<(usize, f32, f32)>) -> Vec<Vec<usize>> {
+fn geo(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
     use std::f32::consts::PI;
     let n = coords.len();
     let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
@@ -156,13 +175,13 @@ fn geo(coords: &Vec<(usize, f32, f32)>) -> Vec<Vec<usize>> {
         (distance + 1.0) as usize
     };
 
-    for row in 0..n {
-        for col in 0..n {
-            if row == col {
-                matrix[row][col] = 0;
+    for (i, row) in matrix.iter_mut().enumerate() {
+        for (j, value) in row.iter_mut().enumerate() {
+            if i == j {
+                *value = 0;
                 continue;
             }
-            matrix[row][col] = calc_dist_geo(row, col);
+            *value = calc_dist_geo(i, j);
         }
     }
 
@@ -173,7 +192,7 @@ pub fn read_data(file_path: &str) -> Instance {
     let instance = tsplib::read(file_path).unwrap();
 
     let dimension = instance.dimension;
-    println!("{:?}", instance);
+    let name = instance.name;
 
     let weight_type = instance.edge_weight_type.unwrap();
 
@@ -182,11 +201,11 @@ pub fn read_data(file_path: &str) -> Instance {
     let matrix = if let Explicit = weight_type {
         let matrix_type = instance.edge_weight.unwrap();
         match matrix_type {
-            FullMatrix(vec) => full_to_full(vec, dimension),
-            UpperRow(vec) => upper_to_full(vec, dimension),
-            LowerRow(vec) => lower_to_full(vec, dimension),
-            UpperDiagRow(vec) => upperdiag_to_full(vec, dimension),
-            LowerDiagRow(vec) => lowerdiag_to_full(vec, dimension),
+            FullMatrix(vec) => full_to_full(&vec, dimension),
+            UpperRow(vec) => upper_to_full(&vec, dimension),
+            LowerRow(vec) => lower_to_full(&vec, dimension),
+            UpperDiagRow(vec) => upperdiag_to_full(&vec, dimension),
+            LowerDiagRow(vec) => lowerdiag_to_full(&vec, dimension),
             _ => panic!("Edge weight not supported"),
         }
     } else {
@@ -197,6 +216,7 @@ pub fn read_data(file_path: &str) -> Instance {
         };
         match weight_type {
             Euc2d => euc_2d(&coords),
+            Ceil2d => ceil_2d(&coords),
             Geo => geo(&coords),
             Att => att(&coords),
             _ => panic!("Edge weight type not supported"),
@@ -205,5 +225,9 @@ pub fn read_data(file_path: &str) -> Instance {
 
     println!("{:?}", matrix);
 
-    Instance { dimension, matrix }
+    Instance {
+        dimension,
+        name,
+        matrix,
+    }
 }
