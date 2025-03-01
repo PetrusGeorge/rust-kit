@@ -1,11 +1,10 @@
-use core::panic;
 use tsplib::{EdgeWeight, EdgeWeightType, NodeCoord, Type};
 
 #[derive(Debug)]
 pub struct Instance {
-    dimension: usize,
-    name: String,
-    matrix: Vec<Vec<usize>>,
+    pub dimension: usize,
+    pub name: String,
+    pub matrix: Vec<Vec<usize>>,
 }
 
 fn full_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
@@ -161,8 +160,6 @@ fn geo(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
         .map(|x| PI * (x.2.floor() + 5.0 * x.2.fract() / 3.0) / 180.0)
         .collect();
 
-    println!("{} {:?}", coords[0].2.floor(), coords[0].2.fract());
-
     let calc_dist_geo = |i: usize, j: usize| {
         const RRR: f32 = 6378.388; // Earth radius approximation
 
@@ -231,8 +228,6 @@ pub fn read_data(file_path: &str) -> Instance {
             _ => panic!("Edge weight type not supported"),
         }
     };
-
-    println!("{:?}", matrix);
 
     Instance {
         dimension,
