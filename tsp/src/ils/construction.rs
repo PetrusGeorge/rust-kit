@@ -1,6 +1,5 @@
 use crate::instance_reader::Instance;
 use crate::solution::*;
-use rand::seq::IteratorRandom;
 use rand::{Rng, rng};
 
 // Auxiliary data structure for best insertion
@@ -37,7 +36,7 @@ fn choose_three_random(cl: &mut Vec<usize>, instance: &Instance) -> Solution {
     // Choose 3 random clients
     let mut sequence = Vec::new();
     for _ in 0..3 {
-        let index = (0..cl.len()).choose(&mut rng()).unwrap();
+        let index = rng().random_range(0..cl.len());
         sequence.push(cl.swap_remove(index));
     }
 
@@ -49,7 +48,8 @@ fn choose_three_random(cl: &mut Vec<usize>, instance: &Instance) -> Solution {
         sequence,
         value: usize::MAX,
     };
-    recalculate_solution(&mut s, instance);
+
+    s.recalculate(instance);
 
     s
 }

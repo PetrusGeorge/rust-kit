@@ -1,10 +1,9 @@
-mod construction;
+mod ils;
 mod instance_reader;
 mod solution;
 
+use ils::ils;
 use std::env;
-
-use construction::construction;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -16,6 +15,6 @@ fn main() {
     }
 
     let instance = instance_reader::read_data(&args[1]);
-    let s = construction(&instance);
-    // println!("{:?}", s);
+    let s = ils(50, 150, &instance);
+    println!("{:?}", s);
 }
