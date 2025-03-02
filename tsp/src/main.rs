@@ -15,6 +15,14 @@ fn main() {
     }
 
     let instance = instance_reader::read_data(&args[1]);
+
+    println!("{}", instance.name);
     let s = ils(50, 150, &instance);
-    println!("{:?}", s);
+    println!("Solution: ");
+    for v in s.sequence.iter().take(s.sequence.len() - 1) {
+        print!("{v} -> ");
+    }
+    println!("{}", s.sequence.last().unwrap());
+
+    println!("Cost: {}", s.value);
 }
