@@ -17,16 +17,20 @@ fn best_swap(s: &mut Solution, instance: &Instance) -> bool {
 
     let c = |i: usize, j: usize| instance.matrix[i][j] as isize;
 
-    for i in 1..(s.sequence.len() - 2) {
-        let vi = s.sequence[i];
-        let vi_next = s.sequence[i + 1];
-        let vi_prev = s.sequence[i - 1];
+    let iter = s.sequence.windows(3).enumerate();
+    for (i, window) in iter {
+        let vi_prev = window[0];
+        let vi = window[1];
+        let vi_next = window[2];
 
         let removal_delta = -(c(vi_prev, vi) + c(vi, vi_next));
-        for j in (i + 2)..(s.sequence.len() - 1) {
-            let vj = s.sequence[j];
-            let vj_next = s.sequence[j + 1];
-            let vj_prev = s.sequence[j - 1];
+
+        let inner_iter = s.sequence[i + 2..].windows(3).enumerate();
+        for (j_offset, window_j) in inner_iter {
+            let j = i + 3 + j_offset;
+            let vj_prev = window_j[0];
+            let vj = window_j[1];
+            let vj_next = window_j[2];
 
             let delta = c(vi_prev, vj) + c(vj, vi_next) - c(vj_prev, vj) - c(vj, vj_next)
                 + c(vj_prev, vi)
@@ -35,7 +39,7 @@ fn best_swap(s: &mut Solution, instance: &Instance) -> bool {
 
             if delta < best_delta {
                 best_delta = delta;
-                best_i = i;
+                best_i = i + 1;
                 best_j = j;
             }
         }
@@ -58,19 +62,23 @@ fn best_2opt(s: &mut Solution, instance: &Instance) -> bool {
 
     let c = |i: usize, j: usize| instance.matrix[i][j] as isize;
 
-    for i in 1..(s.sequence.len() - 2) {
-        let vi = s.sequence[i];
-        let vi_prev = s.sequence[i - 1];
+    let iter = s.sequence.windows(2).enumerate();
+    for (i, window) in iter {
+        let vi_prev = window[0];
+        let vi = window[1];
 
-        for j in (i + 1)..(s.sequence.len() - 1) {
-            let vj = s.sequence[j];
-            let vj_next = s.sequence[j + 1];
+        let inner_iter = s.sequence[i + 2..].windows(2).enumerate();
+        for (j_offset, window_j) in inner_iter {
+            let j = i + 2 + j_offset;
+
+            let vj = window_j[0];
+            let vj_next = window_j[1];
 
             let delta = c(vi, vj_next) + c(vj, vi_prev) - c(vi_prev, vi) - c(vj, vj_next);
 
             if delta < best_delta {
                 best_delta = delta;
-                best_i = i;
+                best_i = i + 1;
                 best_j = j;
             }
         }
@@ -93,33 +101,37 @@ fn best_oropt(s: &mut Solution, block_size: usize, instance: &Instance) -> bool 
 
     let c = |i: usize, j: usize| instance.matrix[i][j] as isize;
 
-    for i in 1..(s.sequence.len() - block_size) {
-        let vi = s.sequence[i];
-        let vi_next = s.sequence[i + block_size];
-        let vi_prev = s.sequence[i - 1];
-        let block_end = s.sequence[i + block_size - 1];
+    let iter = s.sequence.windows(block_size + 2).enumerate();
+    for (i, window) in iter {
+        let vi_prev = window[0];
+        let vi = window[1];
+        let vi_next = window[block_size + 1];
+        let block_end = window[block_size];
 
         let removal_delta = c(vi_prev, vi_next) - c(vi_prev, vi) - c(block_end, vi_next);
+        let mut check_delta = |j: usize, window_j: &[usize]| {
+            let vj = window_j[0];
+            let vj_next = window_j[1];
 
-        let mut check_delta = |j: usize| {
-            let vj = s.sequence[j];
-            let vj_next = s.sequence[j + 1];
             let delta = c(vj, vi) + c(block_end, vj_next) - c(vj, vj_next) + removal_delta;
 
             if delta < best_delta {
                 best_delta = delta;
-                best_i = i;
+                best_i = i + 1;
                 best_j = j;
             }
         };
 
-        // Insert block before i
-        for j in 0..(i - 1) {
-            check_delta(j);
+        let inner_iter_before = s.sequence.windows(2).take(i).enumerate();
+        for (j_offset, window_j) in inner_iter_before {
+            let j = j_offset;
+            check_delta(j, window_j);
         }
-        // Insert block after i
-        for j in (i + block_size)..(s.sequence.len() - block_size) {
-            check_delta(j);
+
+        let inner_iter_after = s.sequence[i + block_size + 1..].windows(2).enumerate();
+        for (j_offset, window_j) in inner_iter_after {
+            let j = i + block_size + j_offset + 1;
+            check_delta(j, window_j);
         }
     }
 
