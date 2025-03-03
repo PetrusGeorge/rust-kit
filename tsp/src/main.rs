@@ -16,8 +16,14 @@ fn main() {
 
     let instance = instance_reader::read_data(&args[1]);
 
+    let max_iter_ils = if instance.dimension < 150 {
+        instance.dimension
+    } else {
+        instance.dimension / 2
+    };
+
     println!("{}", instance.name);
-    let s = ils(50, 150, &instance);
+    let s = ils(50, max_iter_ils, &instance);
     println!("Solution: ");
     for v in s.sequence.iter().take(s.sequence.len() - 1) {
         print!("{v} -> ");

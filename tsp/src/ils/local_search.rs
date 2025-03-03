@@ -17,13 +17,13 @@ fn best_swap(s: &mut Solution, instance: &Instance) -> bool {
 
     let c = |i: usize, j: usize| instance.matrix[i][j] as isize;
 
-    for i in 1..(s.sequence.len() - 1) {
+    for i in 1..(s.sequence.len() - 2) {
         let vi = s.sequence[i];
         let vi_next = s.sequence[i + 1];
         let vi_prev = s.sequence[i - 1];
 
         let removal_delta = -(c(vi_prev, vi) + c(vi, vi_next));
-        for j in (i + 2)..(s.sequence.len() - 2) {
+        for j in (i + 2)..(s.sequence.len() - 1) {
             let vj = s.sequence[j];
             let vj_next = s.sequence[j + 1];
             let vj_prev = s.sequence[j - 1];
@@ -45,15 +45,12 @@ fn best_swap(s: &mut Solution, instance: &Instance) -> bool {
         s.sequence.swap(best_i, best_j);
         s.value = (s.value as isize + best_delta) as usize;
 
-        let teste = s.value;
-        s.recalculate(instance);
-        assert_eq!(s.value, teste);
-
         return true;
     }
 
     false
 }
+
 fn best_2opt(s: &mut Solution, instance: &Instance) -> bool {
     let mut best_delta: isize = 0;
     let mut best_i = usize::MAX;
@@ -61,11 +58,11 @@ fn best_2opt(s: &mut Solution, instance: &Instance) -> bool {
 
     let c = |i: usize, j: usize| instance.matrix[i][j] as isize;
 
-    for i in 1..(s.sequence.len() - 1) {
+    for i in 1..(s.sequence.len() - 2) {
         let vi = s.sequence[i];
         let vi_prev = s.sequence[i - 1];
 
-        for j in (i + 1)..(s.sequence.len() - 2) {
+        for j in (i + 1)..(s.sequence.len() - 1) {
             let vj = s.sequence[j];
             let vj_next = s.sequence[j + 1];
 
@@ -88,6 +85,7 @@ fn best_2opt(s: &mut Solution, instance: &Instance) -> bool {
 
     false
 }
+
 fn best_oropt(s: &mut Solution, block_size: usize, instance: &Instance) -> bool {
     let mut best_delta: isize = 0;
     let mut best_i = usize::MAX;
@@ -95,7 +93,7 @@ fn best_oropt(s: &mut Solution, block_size: usize, instance: &Instance) -> bool 
 
     let c = |i: usize, j: usize| instance.matrix[i][j] as isize;
 
-    for i in 1..(s.sequence.len() - block_size - 1) {
+    for i in 1..(s.sequence.len() - block_size) {
         let vi = s.sequence[i];
         let vi_next = s.sequence[i + block_size];
         let vi_prev = s.sequence[i - 1];
@@ -120,7 +118,7 @@ fn best_oropt(s: &mut Solution, block_size: usize, instance: &Instance) -> bool 
             check_delta(j);
         }
         // Insert block after i
-        for j in (i + block_size)..(s.sequence.len() - block_size - 2) {
+        for j in (i + block_size)..(s.sequence.len() - block_size) {
             check_delta(j);
         }
     }
@@ -133,10 +131,6 @@ fn best_oropt(s: &mut Solution, block_size: usize, instance: &Instance) -> bool 
         }
 
         s.value = (s.value as isize + best_delta) as usize;
-
-        let teste = s.value;
-        s.recalculate(instance);
-        assert_eq!(s.value, teste);
 
         return true;
     }
