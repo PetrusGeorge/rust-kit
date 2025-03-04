@@ -1,4 +1,5 @@
-use crate::{instance_reader::Instance, solution::Solution};
+use crate::solution::Solution;
+use instance_reader::Instance;
 
 #[derive(Default, Clone)]
 pub struct Subsequence {

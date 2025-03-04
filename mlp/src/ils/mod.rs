@@ -3,9 +3,9 @@ mod local_search;
 mod perturbation;
 mod subsequence;
 
-use crate::instance_reader::Instance;
 use crate::solution::Solution;
 use construction::construction;
+use instance_reader::Instance;
 use local_search::local_search;
 use perturbation::perturbation;
 use subsequence::Subsequence;

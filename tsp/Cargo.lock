@@ -33,6 +33,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "instance_reader"
+version = "0.1.0"
+dependencies = [
+ "tsplib",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.170"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -110,8 +117,8 @@ dependencies = [
 name = "tsp"
 version = "0.1.0"
 dependencies = [
+ "instance_reader",
  "rand",
- "tsplib",
 ]
 
 [[package]]

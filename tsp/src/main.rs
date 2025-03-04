@@ -1,5 +1,4 @@
 mod ils;
-mod instance_reader;
 mod solution;
 
 use ils::ils;

@@ -1,5 +1,5 @@
-use crate::instance_reader::Instance;
 use crate::solution::*;
+use instance_reader::Instance;
 use rand::{Rng, rng};
 
 use super::subsequence::{Subsequence, update_solution};

@@ -1,8 +1,8 @@
 use rand::{Rng, rng};
 use std::cmp::max;
 
-use crate::instance_reader::Instance;
 use crate::solution::Solution;
+use instance_reader::Instance;
 
 use super::subsequence::{Subsequence, update_solution};
 

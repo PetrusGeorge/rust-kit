@@ -1,7 +1,7 @@
 use rand::{Rng, rng};
 
-use crate::instance_reader::Instance;
 use crate::solution::Solution;
+use instance_reader::Instance;
 
 #[derive(Clone)]
 enum Searches {

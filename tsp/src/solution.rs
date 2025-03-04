@@ -1,4 +1,4 @@
-use crate::instance_reader::Instance;
+use instance_reader::Instance;
 
 #[derive(Debug, Clone, Default)]
 pub struct Solution {

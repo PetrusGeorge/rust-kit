@@ -1,8 +1,8 @@
 use rand::{Rng, rng};
 use std::cmp::max;
 
-use crate::instance_reader::Instance;
 use crate::solution::Solution;
+use instance_reader::Instance;
 
 pub fn perturbation(mut s: Solution, instance: &Instance) -> Solution {
     // Choose block sizes beetwen 2 and ceil(V/10)
