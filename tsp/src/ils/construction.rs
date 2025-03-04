@@ -18,8 +18,8 @@ fn calculate_insertion_cost(s: &Solution, cl: &[usize], instance: &Instance) -> 
         let i = s.sequence[a];
         let j = s.sequence[a + 1];
         for (cl_index, inserted_node) in cl.iter().enumerate() {
-            let value = instance.matrix[i][*inserted_node] + instance.matrix[*inserted_node][j]
-                - instance.matrix[i][j];
+            let value = instance.distance(i, *inserted_node) + instance.distance(*inserted_node, j)
+                - instance.distance(i, j);
 
             insertion_cost.push(InsertionInfo {
                 cl_index,

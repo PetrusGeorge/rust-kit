@@ -10,7 +10,7 @@ impl Solution {
     pub fn recalculate(&mut self, instance: &Instance) {
         let mut sum = 0;
         for v in self.sequence.windows(2) {
-            sum += instance.matrix[v[0]][v[1]];
+            sum += instance.distance(v[0], v[1]);
         }
         self.value = sum;
     }

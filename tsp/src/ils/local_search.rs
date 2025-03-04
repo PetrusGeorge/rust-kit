@@ -15,7 +15,7 @@ fn best_swap(s: &mut Solution, instance: &Instance) -> bool {
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
-    let c = |i: usize, j: usize| instance.matrix[i][j] as isize;
+    let c = |i: usize, j: usize| instance.distance(i, j) as isize;
 
     let iter = s.sequence.windows(3).enumerate();
     for (i, window) in iter {
@@ -60,7 +60,7 @@ fn best_2opt(s: &mut Solution, instance: &Instance) -> bool {
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
-    let c = |i: usize, j: usize| instance.matrix[i][j] as isize;
+    let c = |i: usize, j: usize| instance.distance(i, j) as isize;
 
     let iter = s.sequence.windows(2).enumerate();
     for (i, window) in iter {
@@ -99,7 +99,7 @@ fn best_oropt(s: &mut Solution, block_size: usize, instance: &Instance) -> bool 
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
-    let c = |i: usize, j: usize| instance.matrix[i][j] as isize;
+    let c = |i: usize, j: usize| instance.distance(i, j) as isize;
 
     let iter = s.sequence.windows(block_size + 2).enumerate();
     for (i, window) in iter {

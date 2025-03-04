@@ -18,7 +18,7 @@ fn calculate_insertion_cost(s: &Solution, cl: &[usize], instance: &Instance) -> 
     for (i, node) in cl.iter().enumerate() {
         insertion_cost.push(InsertionInfo {
             cl_index: i,
-            value: instance.matrix[*last_sequence][*node],
+            value: instance.distance(*last_sequence, *node),
         });
     }
 

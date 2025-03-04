@@ -12,7 +12,7 @@ pub struct Subsequence {
 
 impl Subsequence {
     pub fn concatenate(&self, other: &Subsequence, instance: &Instance) -> Subsequence {
-        let distance = instance.matrix[self.last][other.first];
+        let distance = instance.distance(self.last, other.first);
         let t = self.t + distance + other.t;
         let c = self.c + other.w * (self.t + distance) + other.c;
         let w = self.w + other.w;

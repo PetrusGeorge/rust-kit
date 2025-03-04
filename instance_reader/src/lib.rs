@@ -4,32 +4,24 @@ use tsplib::{EdgeWeight, EdgeWeightType, NodeCoord, Type};
 pub struct Instance {
     pub dimension: usize,
     pub name: String,
-    pub matrix: Vec<Vec<usize>>,
+    matrix: Vec<usize>,
 }
 
-fn full_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
-    let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
-
-    let mut index = 0;
-    for row in 0..n {
-        for col in 0..n {
-            matrix[row][col] = vec[index];
-            matrix[col][row] = vec[index];
-            index += 1;
-        }
+impl Instance {
+    #[inline]
+    pub fn distance(&self, i: usize, j: usize) -> usize {
+        self.matrix[(i * self.dimension) + j]
     }
-
-    matrix
 }
 
-fn upper_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
-    let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
+fn upper_to_full(vec: &[usize], n: usize) -> Vec<usize> {
+    let mut matrix = vec![0; n * n];
 
     let mut index = 0;
     for row in 0..n {
         for col in row + 1..n {
-            matrix[row][col] = vec[index];
-            matrix[col][row] = vec[index];
+            matrix[(row * n) + col] = vec[index];
+            matrix[(col * n) + row] = vec[index];
             index += 1;
         }
     }
@@ -37,14 +29,14 @@ fn upper_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
     matrix
 }
 
-fn upperdiag_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
-    let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
+fn upperdiag_to_full(vec: &[usize], n: usize) -> Vec<usize> {
+    let mut matrix = vec![0; n * n];
 
     let mut index = 0;
     for row in 0..n {
         for col in row..n {
-            matrix[row][col] = vec[index];
-            matrix[col][row] = vec[index];
+            matrix[(row * n) + col] = vec[index];
+            matrix[(col * n) + row] = vec[index];
             index += 1;
         }
     }
@@ -52,14 +44,14 @@ fn upperdiag_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
     matrix
 }
 
-fn lower_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
-    let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
+fn lower_to_full(vec: &[usize], n: usize) -> Vec<usize> {
+    let mut matrix = vec![0; n * n];
 
     let mut index = 0;
     for row in 1..n {
         for col in 0..row {
-            matrix[row][col] = vec[index];
-            matrix[col][row] = vec[index];
+            matrix[(row * n) + col] = vec[index];
+            matrix[(col * n) + row] = vec[index];
             index += 1;
         }
     }
@@ -67,14 +59,14 @@ fn lower_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
     matrix
 }
 
-fn lowerdiag_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
-    let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
+fn lowerdiag_to_full(vec: &[usize], n: usize) -> Vec<usize> {
+    let mut matrix = vec![0; n * n];
 
     let mut index = 0;
     for row in 0..n {
         for col in 0..=row {
-            matrix[row][col] = vec[index];
-            matrix[col][row] = vec[index];
+            matrix[(row * n) + col] = vec[index];
+            matrix[(col * n) + row] = vec[index];
             index += 1;
         }
     }
@@ -82,9 +74,9 @@ fn lowerdiag_to_full(vec: &[usize], n: usize) -> Vec<Vec<usize>> {
     matrix
 }
 
-fn euc_2d(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
+fn euc_2d(coords: &[(usize, f32, f32)]) -> Vec<usize> {
     let n = coords.len();
-    let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
+    let mut matrix = vec![0; n * n];
 
     let calc_dist_euc = |i: usize, j: usize| {
         (((coords[i].1 - coords[j].1).powf(2.0) + (coords[i].2 - coords[j].2).powf(2.0)).sqrt()
@@ -92,18 +84,18 @@ fn euc_2d(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
             .floor() as usize
     };
 
-    for (i, row) in matrix.iter_mut().enumerate() {
-        for (j, value) in row.iter_mut().enumerate() {
-            *value = calc_dist_euc(i, j);
-        }
+    for (index, value) in matrix.iter_mut().enumerate() {
+        let i = index / n;
+        let j = index % n;
+        *value = calc_dist_euc(i, j);
     }
 
     matrix
 }
 
-fn ceil_2d(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
+fn ceil_2d(coords: &[(usize, f32, f32)]) -> Vec<usize> {
     let n = coords.len();
-    let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
+    let mut matrix = vec![0; n * n];
 
     let calc_dist_ceil = |i: usize, j: usize| {
         ((coords[i].1 - coords[j].1).powf(2.0) + (coords[i].2 - coords[j].2).powf(2.0))
@@ -111,18 +103,18 @@ fn ceil_2d(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
             .ceil() as usize
     };
 
-    for (i, row) in matrix.iter_mut().enumerate() {
-        for (j, value) in row.iter_mut().enumerate() {
-            *value = calc_dist_ceil(i, j);
-        }
+    for (index, value) in matrix.iter_mut().enumerate() {
+        let i = index / n;
+        let j = index % n;
+        *value = calc_dist_ceil(i, j);
     }
 
     matrix
 }
 
-fn att(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
+fn att(coords: &[(usize, f32, f32)]) -> Vec<usize> {
     let n = coords.len();
-    let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
+    let mut matrix = vec![0; n * n];
 
     let calc_dist_att = |i: usize, j: usize| {
         let euc = (((coords[i].1 - coords[j].1).powf(2.0) + (coords[i].2 - coords[j].2).powf(2.0))
@@ -138,19 +130,20 @@ fn att(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
         }
     };
 
-    for (i, row) in matrix.iter_mut().enumerate() {
-        for (j, value) in row.iter_mut().enumerate() {
-            *value = calc_dist_att(i, j);
-        }
+    for (index, value) in matrix.iter_mut().enumerate() {
+        let i = index / n;
+        let j = index % n;
+        *value = calc_dist_att(i, j);
     }
 
     matrix
 }
 
-fn geo(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
+fn geo(coords: &[(usize, f32, f32)]) -> Vec<usize> {
     use std::f32::consts::PI;
     let n = coords.len();
-    let mut matrix: Vec<Vec<usize>> = vec![vec![0; n]; n];
+    let mut matrix = vec![0; n * n];
+
     let latit: Vec<f32> = coords
         .iter()
         .map(|x| PI * (x.1.floor() + 5.0 * x.1.fract() / 3.0) / 180.0)
@@ -172,14 +165,14 @@ fn geo(coords: &[(usize, f32, f32)]) -> Vec<Vec<usize>> {
         (distance + 1.0) as usize
     };
 
-    for (i, row) in matrix.iter_mut().enumerate() {
-        for (j, value) in row.iter_mut().enumerate() {
-            if i == j {
-                *value = 0;
-                continue;
-            }
-            *value = calc_dist_geo(i, j);
+    for (index, value) in matrix.iter_mut().enumerate() {
+        let i = index / n;
+        let j = index % n;
+        if i == j {
+            *value = 0;
+            continue;
         }
+        *value = calc_dist_geo(i, j);
     }
 
     matrix
@@ -207,7 +200,7 @@ pub fn read_data(file_path: &str) -> Instance {
             .edge_weight
             .expect("Instance does't supply edge weight format in explicit type");
         match matrix_type {
-            FullMatrix(vec) => full_to_full(&vec, dimension),
+            FullMatrix(vec) => vec,
             UpperRow(vec) => upper_to_full(&vec, dimension),
             LowerRow(vec) => lower_to_full(&vec, dimension),
             UpperDiagRow(vec) => upperdiag_to_full(&vec, dimension),
