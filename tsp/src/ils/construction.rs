@@ -74,7 +74,7 @@ pub fn construction(instance: &Instance) -> Solution {
         s.sequence
             .insert(chosen_insertion.removed_edge, cl[chosen_insertion.cl_index]);
 
-        cl.remove(chosen_insertion.cl_index);
+        cl.swap_remove(chosen_insertion.cl_index);
 
         s.value += chosen_insertion.value;
     }

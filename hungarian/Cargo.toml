@@ -1,0 +1,11 @@
+[package]
+name = "hungarian"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+instance_reader = { version = "0.1.0", path = "../instance_reader" }
+libc = "0.2.170"
+
+[build-dependencies]
+cc = "1.2.16"

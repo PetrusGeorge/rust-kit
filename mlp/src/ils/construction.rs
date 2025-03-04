@@ -47,7 +47,7 @@ pub fn construction(subseq_matrix: &mut [Vec<Subsequence>], instance: &Instance)
 
         s.sequence.push(cl[chosen_insertion.cl_index]);
 
-        cl.remove(chosen_insertion.cl_index);
+        cl.swap_remove(chosen_insertion.cl_index);
     }
 
     s.sequence.push(0);

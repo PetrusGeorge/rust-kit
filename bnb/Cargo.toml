@@ -1,0 +1,8 @@
+[package]
+name = "bnb"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hungarian = { version = "0.1.0", path = "../hungarian" }
+instance_reader = { version = "0.1.0", path = "../instance_reader" }
