@@ -12,6 +12,10 @@ impl Instance {
     pub fn distance(&self, i: usize, j: usize) -> usize {
         self.matrix[(i * self.dimension) + j]
     }
+
+    pub fn matrix_slice(&self) -> &[usize] {
+        &self.matrix
+    }
 }
 
 fn upper_to_full(vec: &[usize], n: usize) -> Vec<usize> {
