@@ -4,11 +4,11 @@ use std::cmp::max;
 use crate::solution::Solution;
 use instance_reader::Instance;
 
-use super::subsequence::{Subsequence, update_solution};
+use super::subsequence::{SubsequenceMatrix, update_solution};
 
 pub fn perturbation(
     mut s: Solution,
-    subseq_matrix: &mut [Vec<Subsequence>],
+    subseq_matrix: &mut SubsequenceMatrix,
     instance: &Instance,
 ) -> Solution {
     // Choose block sizes beetwen 2 and ceil(V/10)

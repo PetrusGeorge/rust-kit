@@ -3,7 +3,7 @@ use rand::{Rng, rng};
 use crate::solution::Solution;
 use instance_reader::Instance;
 
-use super::subsequence::{Subsequence, update_solution};
+use super::subsequence::{Subsequence, SubsequenceMatrix, update_solution};
 
 #[derive(Clone)]
 enum Searches {
@@ -12,22 +12,22 @@ enum Searches {
     OrOpt(usize),
 }
 
-fn best_swap(
-    s: &mut Solution,
-    subseq_matrix: &mut [Vec<Subsequence>],
-    instance: &Instance,
-) -> bool {
+fn best_swap(s: &mut Solution, subseq_matrix: &mut SubsequenceMatrix, instance: &Instance) -> bool {
     let mut best_delta: isize = 0;
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
     for i in 1..s.sequence.len() - 2 {
         for j in i + 2..s.sequence.len() - 1 {
-            let sigma = subseq_matrix[0][i - 1]
-                .concatenate(&subseq_matrix[j][j], instance)
-                .concatenate(&subseq_matrix[i + 1][j - 1], instance)
-                .concatenate(&subseq_matrix[i][i], instance)
-                .concatenate(subseq_matrix[j + 1].last().unwrap(), instance);
+            let sigma = subseq_matrix
+                .get(0, i - 1)
+                .concatenate(subseq_matrix.get(j, j), instance)
+                .concatenate(subseq_matrix.get(i + 1, j - 1), instance)
+                .concatenate(subseq_matrix.get(i, i), instance)
+                .concatenate(
+                    subseq_matrix.get(j + 1, subseq_matrix.dimension() - 1),
+                    instance,
+                );
 
             let delta = sigma.c as isize - s.value as isize;
 
@@ -49,20 +49,20 @@ fn best_swap(
     false
 }
 
-fn best_2opt(
-    s: &mut Solution,
-    subseq_matrix: &mut [Vec<Subsequence>],
-    instance: &Instance,
-) -> bool {
+fn best_2opt(s: &mut Solution, subseq_matrix: &mut SubsequenceMatrix, instance: &Instance) -> bool {
     let mut best_delta: isize = 0;
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
     for i in 1..s.sequence.len() - 2 {
         for j in i + 1..s.sequence.len() - 1 {
-            let sigma = subseq_matrix[0][i - 1]
-                .concatenate(&subseq_matrix[j][i], instance)
-                .concatenate(subseq_matrix[j + 1].last().unwrap(), instance);
+            let sigma = subseq_matrix
+                .get(0, i - 1)
+                .concatenate(subseq_matrix.get(j, i), instance)
+                .concatenate(
+                    subseq_matrix.get(j + 1, subseq_matrix.dimension() - 1),
+                    instance,
+                );
 
             let delta = sigma.c as isize - s.value as isize;
 
@@ -86,7 +86,7 @@ fn best_2opt(
 
 fn best_oropt(
     s: &mut Solution,
-    subseq_matrix: &mut [Vec<Subsequence>],
+    subseq_matrix: &mut SubsequenceMatrix,
     block_size: usize,
     instance: &Instance,
 ) -> bool {
@@ -107,20 +107,28 @@ fn best_oropt(
 
         // Insert block before i
         for j in 1..i.saturating_sub(2) {
-            let sigma = subseq_matrix[0][j]
-                .concatenate(&subseq_matrix[i][i + block_size - 1], instance)
-                .concatenate(&subseq_matrix[j + 1][i - 1], instance)
-                .concatenate(subseq_matrix[i + block_size].last().unwrap(), instance);
+            let sigma = subseq_matrix
+                .get(0, j)
+                .concatenate(subseq_matrix.get(i, i + block_size - 1), instance)
+                .concatenate(subseq_matrix.get(j + 1, i - 1), instance)
+                .concatenate(
+                    subseq_matrix.get(i + block_size, subseq_matrix.dimension() - 1),
+                    instance,
+                );
 
             check_delta(sigma, j);
         }
 
         // Insert block after i
         for j in i + block_size..s.sequence.len() - 1 {
-            let sigma = subseq_matrix[0][i - 1]
-                .concatenate(&subseq_matrix[i + block_size][j], instance)
-                .concatenate(&subseq_matrix[i][i + block_size - 1], instance)
-                .concatenate(subseq_matrix[j + 1].last().unwrap(), instance);
+            let sigma = subseq_matrix
+                .get(0, i - 1)
+                .concatenate(subseq_matrix.get(i + block_size, j), instance)
+                .concatenate(subseq_matrix.get(i, i + block_size - 1), instance)
+                .concatenate(
+                    subseq_matrix.get(j + 1, subseq_matrix.dimension() - 1),
+                    instance,
+                );
 
             check_delta(sigma, j);
         }
@@ -146,7 +154,7 @@ fn best_oropt(
     false
 }
 
-pub fn local_search(s: &mut Solution, subseq_matrix: &mut [Vec<Subsequence>], instance: &Instance) {
+pub fn local_search(s: &mut Solution, subseq_matrix: &mut SubsequenceMatrix, instance: &Instance) {
     use Searches::*;
     const SEARCHES: [Searches; 5] = [Swap, TwoOpt, OrOpt(1), OrOpt(2), OrOpt(3)];
 
@@ -160,7 +168,6 @@ pub fn local_search(s: &mut Solution, subseq_matrix: &mut [Vec<Subsequence>], in
             Swap => best_swap(s, subseq_matrix, instance),
             TwoOpt => best_2opt(s, subseq_matrix, instance),
             OrOpt(block_size) => best_oropt(s, subseq_matrix, *block_size, instance),
-            // _ => false,
         };
 
         if improved {

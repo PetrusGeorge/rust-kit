@@ -8,15 +8,16 @@ use construction::construction;
 use instance_reader::Instance;
 use local_search::local_search;
 use perturbation::perturbation;
-use subsequence::Subsequence;
+use subsequence::SubsequenceMatrix;
 
 pub fn ils(max_iter: usize, max_iter_ils: usize, instance: &Instance) -> Solution {
     let mut best = Solution {
         value: usize::MAX,
         ..Default::default()
     };
-    let mut subseq_matrix =
-        vec![vec![Subsequence::default(); instance.dimension + 1]; instance.dimension + 1];
+    // let mut subseq_matrix =
+    //     vec![vec![Subsequence::default(); instance.dimension + 1]; instance.dimension + 1];
+    let mut subseq_matrix = SubsequenceMatrix::from(instance.dimension + 1);
 
     for _ in 0..max_iter {
         let mut s = construction(&mut subseq_matrix, instance);

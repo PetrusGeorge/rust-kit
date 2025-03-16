@@ -2,7 +2,7 @@ use crate::solution::*;
 use instance_reader::Instance;
 use rand::{Rng, rng};
 
-use super::subsequence::{Subsequence, update_solution};
+use super::subsequence::{SubsequenceMatrix, update_solution};
 
 // Auxiliary data structure for best insertion
 struct InsertionInfo {
@@ -26,7 +26,7 @@ fn calculate_insertion_cost(s: &Solution, cl: &[usize], instance: &Instance) -> 
 }
 
 // Constructs a solution with a grasp algorithm using best insertion
-pub fn construction(subseq_matrix: &mut [Vec<Subsequence>], instance: &Instance) -> Solution {
+pub fn construction(subseq_matrix: &mut SubsequenceMatrix, instance: &Instance) -> Solution {
     // cl is the candidate list to insert into the solution
     let mut cl: Vec<usize> = (1..instance.dimension).collect();
     let mut s = Solution {

@@ -39,12 +39,37 @@ impl Subsequence {
     }
 }
 
+pub struct SubsequenceMatrix {
+    matrix: Vec<Subsequence>,
+    dimension: usize,
+}
+
+impl SubsequenceMatrix {
+    pub fn from(dimension: usize) -> Self {
+        SubsequenceMatrix {
+            matrix: vec![Default::default(); dimension * dimension],
+            dimension,
+        }
+    }
+
+    pub fn get(&self, i: usize, j: usize) -> &Subsequence {
+        &self.matrix[(i * self.dimension) + j]
+    }
+    pub fn get_mut(&mut self, i: usize, j: usize) -> &mut Subsequence {
+        &mut self.matrix[(i * self.dimension) + j]
+    }
+
+    pub fn dimension(&self) -> usize {
+        self.dimension
+    }
+}
+
 // Ignore this clippy lint that triggers on the first loop
 // rewriting it using iter is needless complicated
 #[allow(clippy::needless_range_loop)]
 pub fn update_subsequences(
     s: &Solution,
-    subseq_matrix: &mut [Vec<Subsequence>],
+    subseq_matrix: &mut SubsequenceMatrix,
     instance: &Instance,
     bounds: Option<(usize, usize)>,
 ) {
@@ -52,15 +77,16 @@ pub fn update_subsequences(
 
     // Single node subsequences
     for i in begin..=end {
-        subseq_matrix[i][i] = Subsequence::create_single_node(i, s);
+        *subseq_matrix.get_mut(i, i) = Subsequence::create_single_node(i, s);
     }
 
     // Direct subsequences
     for i in 0..=end {
         let first_col = std::cmp::max(begin, i + 1);
         for j in first_col..s.sequence.len() {
-            subseq_matrix[i][j] =
-                subseq_matrix[i][j - 1].concatenate(&subseq_matrix[j][j], instance);
+            *subseq_matrix.get_mut(i, j) = subseq_matrix
+                .get(i, j - 1)
+                .concatenate(subseq_matrix.get(j, j), instance);
         }
     }
 
@@ -69,19 +95,20 @@ pub fn update_subsequences(
         let last_col = std::cmp::min(end as isize, i as isize - 1);
         for j in (0..=last_col).rev() {
             let j = j as usize;
-            subseq_matrix[i][j] =
-                subseq_matrix[i][j + 1].concatenate(&subseq_matrix[j][j], instance);
+            *subseq_matrix.get_mut(i, j) = subseq_matrix
+                .get(i, j + 1)
+                .concatenate(subseq_matrix.get(j, j), instance);
         }
     }
 }
 
-pub fn extract_solution_cost(subseq_matrix: &[Vec<Subsequence>]) -> usize {
-    subseq_matrix[0].last().unwrap().c
+pub fn extract_solution_cost(subseq_matrix: &SubsequenceMatrix) -> usize {
+    subseq_matrix.get(0, subseq_matrix.dimension - 1).c
 }
 
 pub fn update_solution(
     s: &mut Solution,
-    subseq_matrix: &mut [Vec<Subsequence>],
+    subseq_matrix: &mut SubsequenceMatrix,
     instance: &Instance,
     bounds: Option<(usize, usize)>,
 ) {
