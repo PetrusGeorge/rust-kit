@@ -57,7 +57,8 @@ pub fn bnb_lr(instance: &Instance, upperbound: usize) -> Option<Solution> {
             continue;
         }
 
-        let (index_first, indeces) = node.ban_from_child.as_ref().unwrap();
+        // If this is NONE than the upperbound is either wrong or is the optimal value
+        let (index_first, indeces) = node.ban_from_child.as_ref()?;
         for i in indeces.iter() {
             let mut new_node = node.clone();
             new_node.forbidden_arcs.insert((*index_first, *i));

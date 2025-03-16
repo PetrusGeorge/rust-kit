@@ -42,22 +42,14 @@ fn build_priority_queue(
     edges.into()
 }
 
-fn closest_to_first_node(
-    instance: &Instance,
-    lambdas: &[f64],
-    forbidden_arcs: &HashSet<(usize, usize)>,
-) -> (usize, usize, f64) {
+fn closest_to_first_node(instance: &Instance, lambdas: &[f64]) -> (usize, usize, f64) {
     let mut lowest_index_1 = 0;
     let mut lowest_index_2 = 0;
     let mut lowest1 = f64::INFINITY;
     let mut lowest2 = f64::INFINITY;
 
-    for i in 1..instance.dimension {
-        let cost = if forbidden_arcs.contains(&(0, i)) || forbidden_arcs.contains(&(i, 0)) {
-            f64::INFINITY
-        } else {
-            instance.distance(0, i) as f64 - lambdas[0] - lambdas[i]
-        };
+    for (i, lambda) in lambdas.iter().enumerate().skip(1) {
+        let cost = instance.distance(0, i) as f64 - lambda;
 
         if cost < lowest1 {
             // Shift the value to second
@@ -77,6 +69,7 @@ fn closest_to_first_node(
 
 pub fn lr(node: Node, instance: &Instance, upperbound: f64) -> Node {
     const MAX_ITER: usize = 30;
+    const MIN_EPS: f64 = 1e-5;
 
     let mut best_node = node;
     let mut lambdas = best_node.lambdas.clone();
@@ -90,7 +83,7 @@ pub fn lr(node: Node, instance: &Instance, upperbound: f64) -> Node {
 
     let mut iter_not_improved = 0;
     let mut eps = 1.0;
-    while eps > 1e-4 {
+    while eps > MIN_EPS {
         // Solve MST without the first node
         let (mut cost, mut edges) = mst(
             build_priority_queue(instance, &lambdas, &best_node.forbidden_arcs),
@@ -100,8 +93,7 @@ pub fn lr(node: Node, instance: &Instance, upperbound: f64) -> Node {
         cost += 2.0 * lambdas.iter().sum::<f64>();
 
         // Reinsert first node into solution
-        let (first, second, added_cost) =
-            closest_to_first_node(instance, &lambdas, &best_node.forbidden_arcs);
+        let (first, second, added_cost) = closest_to_first_node(instance, &lambdas);
         edges[0].push(first);
         edges[first].push(0);
         edges[0].push(second);
@@ -151,16 +143,20 @@ pub fn lr(node: Node, instance: &Instance, upperbound: f64) -> Node {
         }
     }
 
-    if best_node.solution.is_none() {
-        // if best edges is empty at this point something went wrong and should indeed panic
-        best_node.ban_from_child = Some(
+    best_node.ban_from_child = if best_node.solution.is_none() {
+        // if best edges is empty at this point something went wrong for now I will panic
+        // anyway if the code panics at this point it's mostly likely that the upperbound is way
+        // higher than the actual optimal value
+        Some(
             best_edges
                 .into_iter()
                 .enumerate()
                 .max_by(|(_, a), (_, b)| a.len().cmp(&b.len()))
                 .unwrap(),
-        );
-    }
+        )
+    } else {
+        None
+    };
 
     best_node
 }
