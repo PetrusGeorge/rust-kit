@@ -33,26 +33,26 @@ fn convert_solution(s_in: &[Vec<usize>], cost: f64) -> Solution {
 
     Solution {
         sequence,
-        value: cost as usize,
+        value: cost.round() as usize,
     }
 }
 
-pub fn bnb_lr(instance: &Instance, upperbound: usize) -> Solution {
+pub fn bnb_lr(instance: &Instance, upperbound: usize) -> Option<Solution> {
     let mut tree = VecDeque::new();
     let mut upperbound = upperbound as f64;
-    let mut best_node = Default::default();
+    let mut best_node = None;
 
+    // Solve root node
     tree.push_back(lr(Default::default(), instance, upperbound));
 
     while !tree.is_empty() {
         let node = tree.pop_back().unwrap();
-        println!("{:?}", node);
 
+        // Is node feasible?
         if node.solution.is_some() {
             if node.value < upperbound {
-                println!("{upperbound}");
                 upperbound = node.value;
-                best_node = node;
+                best_node = Some(node);
             }
             continue;
         }
@@ -60,17 +60,18 @@ pub fn bnb_lr(instance: &Instance, upperbound: usize) -> Solution {
         let (index_first, indeces) = node.ban_from_child.as_ref().unwrap();
         for i in indeces.iter() {
             let mut new_node = node.clone();
-            println!("Meu pai {:?}", new_node);
             new_node.forbidden_arcs.insert((*index_first, *i));
+
             new_node = lr(new_node, instance, upperbound);
-            println!("Depois {:?}\n\n", new_node);
             if new_node.value < upperbound {
                 tree.push_back(new_node);
             }
         }
     }
 
-    println!("{:?}", best_node);
-
-    convert_solution(&best_node.solution.unwrap(), best_node.value)
+    let best_node = best_node?;
+    Some(convert_solution(
+        &best_node.solution.unwrap(),
+        best_node.value,
+    ))
 }

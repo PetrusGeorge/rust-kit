@@ -2,11 +2,15 @@ mod kruskal;
 
 use instance_reader::Instance;
 use kruskal::{Edge, mst};
-use std::collections::{BinaryHeap, HashSet};
+use std::{
+    collections::{BinaryHeap, HashSet},
+    fmt::Debug,
+};
 
 #[derive(Debug, Default, Clone)]
 pub struct Node {
     pub forbidden_arcs: HashSet<(usize, usize)>,
+    pub lambdas: Vec<f64>,
     pub solution: Option<Vec<Vec<usize>>>,
     pub ban_from_child: Option<(usize, Vec<usize>)>,
     pub value: f64,
@@ -49,7 +53,7 @@ fn closest_to_first_node(
     let mut lowest2 = f64::INFINITY;
 
     for i in 1..instance.dimension {
-        let cost = if forbidden_arcs.contains(&(0, i)) {
+        let cost = if forbidden_arcs.contains(&(0, i)) || forbidden_arcs.contains(&(i, 0)) {
             f64::INFINITY
         } else {
             instance.distance(0, i) as f64 - lambdas[0] - lambdas[i]
@@ -74,14 +78,19 @@ fn closest_to_first_node(
 pub fn lr(node: Node, instance: &Instance, upperbound: f64) -> Node {
     const MAX_ITER: usize = 30;
 
-    let mut lambdas = vec![0.0; instance.dimension];
     let mut best_node = node;
-    // best_node.ban_from_child = None;
+    let mut lambdas = best_node.lambdas.clone();
+
+    // Root node case
+    if lambdas.is_empty() {
+        lambdas = vec![0.0; instance.dimension];
+    }
+
     let mut best_edges = Vec::new();
 
     let mut iter_not_improved = 0;
     let mut eps = 1.0;
-    while eps > 5e-4 {
+    while eps > 1e-4 {
         // Solve MST without the first node
         let (mut cost, mut edges) = mst(
             build_priority_queue(instance, &lambdas, &best_node.forbidden_arcs),
@@ -120,6 +129,7 @@ pub fn lr(node: Node, instance: &Instance, upperbound: f64) -> Node {
         // Check if there is an improvement
         if cost > best_node.value {
             best_node.value = cost;
+            best_node.lambdas = lambdas.clone();
             best_edges = edges;
             iter_not_improved = 0;
         } else {
@@ -130,17 +140,19 @@ pub fn lr(node: Node, instance: &Instance, upperbound: f64) -> Node {
             }
         }
 
-        // PGopt
+        // Because the real solution has a integer value
+        // In the where case this cost is higher than upperbound - 1 (with some slack)
+        // there will be no better solution than the current upperbound
         if upperbound - cost < 1.0 - 1e-2 {
-            println!("OPTOU");
+            // this will also cause a problem when the upperbound in the user input is the optimal value
+            // this optimization will make so that the optimal value can't be proven
             best_node.value = f64::INFINITY;
             return best_node;
         }
     }
 
-    println!("{:?}", best_edges);
-
     if best_node.solution.is_none() {
+        // if best edges is empty at this point something went wrong and should indeed panic
         best_node.ban_from_child = Some(
             best_edges
                 .into_iter()
