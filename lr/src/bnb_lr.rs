@@ -1,4 +1,5 @@
-use std::collections::{HashSet, VecDeque};
+use core::panic;
+use std::collections::{BTreeSet, VecDeque};
 
 use instance_reader::Instance;
 
@@ -14,7 +15,7 @@ fn convert_solution(s_in: &[Vec<usize>], cost: f64) -> Solution {
     let mut current = s_in[0][0];
     sequence.push(current);
 
-    let mut not_visited: HashSet<usize> = (1..n).collect();
+    let mut not_visited: BTreeSet<usize> = (1..n).collect();
     not_visited.remove(&current);
 
     loop {
@@ -45,27 +46,32 @@ pub fn bnb_lr(instance: &Instance, upperbound: usize) -> Option<Solution> {
     // Solve root node
     tree.push_back(lr(Default::default(), instance, upperbound));
 
-    while !tree.is_empty() {
-        let node = tree.pop_back().unwrap();
-
-        // Is node feasible?
-        if node.solution.is_some() {
-            if node.value < upperbound {
-                upperbound = node.value;
-                best_node = Some(node);
-            }
-            continue;
-        }
-
+    while let Some(node) = tree.pop_back() {
         // If this is NONE than the upperbound is either wrong or is the optimal value
         let (index_first, indeces) = node.ban_from_child.as_ref()?;
-        for i in indeces.iter() {
+        for i in indeces {
             let mut new_node = node.clone();
-            new_node.forbidden_arcs.insert((*index_first, *i));
+            let edge = if *index_first < *i {
+                (*index_first, *i)
+            } else {
+                (*i, *index_first)
+            };
+
+            match new_node.forbidden_arcs.binary_search(&edge) {
+                Ok(_) => panic!("Duplicated edge on forbidden arcs"),
+                Err(idx) => new_node.forbidden_arcs.insert(idx, edge),
+            }
 
             new_node = lr(new_node, instance, upperbound);
+
             if new_node.value < upperbound {
-                tree.push_back(new_node);
+                // Is node feasible?
+                if new_node.solution.is_some() {
+                    upperbound = node.value;
+                    best_node = Some(new_node);
+                } else {
+                    tree.push_back(new_node);
+                }
             }
         }
     }

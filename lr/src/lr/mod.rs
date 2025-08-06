@@ -2,11 +2,11 @@ mod kruskal;
 
 use instance_reader::Instance;
 use kruskal::{Edge, mst};
-use std::collections::{BinaryHeap, HashSet};
+use std::collections::BinaryHeap;
 
 #[derive(Debug, Default, Clone)]
 pub struct Node {
-    pub forbidden_arcs: HashSet<(usize, usize)>,
+    pub forbidden_arcs: Vec<(usize, usize)>,
     pub lambdas: Vec<f64>,
     pub solution: Option<Vec<Vec<usize>>>,
     pub ban_from_child: Option<(usize, Vec<usize>)>,
@@ -16,22 +16,29 @@ pub struct Node {
 fn build_priority_queue(
     instance: &Instance,
     lambdas: &[f64],
-    forbidden_arcs: &HashSet<(usize, usize)>,
+    forbidden_arcs: &[(usize, usize)],
 ) -> BinaryHeap<Edge> {
     let n = instance.dimension;
     // The first node will not be part of kruskal
-    let mut edges = Vec::with_capacity((n - 1) * (n - 1));
+    let final_size = (n - 1) * (n - 2) / 2 - forbidden_arcs.len();
+    let mut edges = Vec::with_capacity(final_size);
+
+    let mut forbidden_arcs_it = forbidden_arcs
+        .iter()
+        .skip_while(|(a, _)| *a == 0)
+        .peekable();
 
     for i in 1..n {
-        for j in 1..n {
-            if i == j {
-                continue;
+        for j in i + 1..n {
+            if let Some(&&(a, b)) = forbidden_arcs_it.peek() {
+                if (a, b) == (i, j) {
+                    forbidden_arcs_it.next();
+                    continue;
+                }
             }
-            let cost = if forbidden_arcs.contains(&(i, j)) || forbidden_arcs.contains(&(j, i)) {
-                f64::INFINITY
-            } else {
-                instance.distance(i, j) as f64 - lambdas[i] - lambdas[j]
-            };
+
+            let cost = instance.distance(i, j) as f64 - lambdas[i] - lambdas[j];
+
             edges.push(Edge::from(cost, i, j));
         }
     }
@@ -42,20 +49,28 @@ fn build_priority_queue(
 fn closest_to_first_node(
     instance: &Instance,
     lambdas: &[f64],
-    forbidden_arcs: &HashSet<(usize, usize)>,
+    forbidden_arcs: &[(usize, usize)],
 ) -> (usize, usize, f64) {
     let mut lowest_index_1 = 0;
     let mut lowest_index_2 = 0;
     let mut lowest1 = f64::INFINITY;
     let mut lowest2 = f64::INFINITY;
 
+    let mut forbidden_arcs_it = forbidden_arcs
+        .iter()
+        .take_while(|(a, _)| *a == 0)
+        .peekable();
+
     for (i, lambda) in lambdas.iter().enumerate().skip(1) {
-        let cost = if forbidden_arcs.contains(&(0, i)) || forbidden_arcs.contains(&(i, 0)) {
-            f64::INFINITY
-        } else {
-            // Lambda[0] is always 0 so we ignore it
-            instance.distance(0, i) as f64 - lambda
-        };
+        if let Some(&&(_, b)) = forbidden_arcs_it.peek() {
+            if b == i {
+                forbidden_arcs_it.next();
+                continue;
+            }
+        }
+
+        // Lambda[0] is always 0 so we ignore it
+        let cost = instance.distance(0, i) as f64 - lambda;
 
         if cost < lowest1 {
             // Shift the value to second
@@ -139,8 +154,8 @@ pub fn lr(node: Node, instance: &Instance, upperbound: f64) -> Node {
             *lambda += mi * subgradients[index] as f64;
         }
 
-        // Because the real solution has a integer value
-        // In the where case this cost is higher than upperbound - 1 (with some slack)
+        // Assuming that the feasible solution cost is integer
+        // When this cost is higher than upperbound - 1 (with some slack)
         // there will be no better solution than the current upperbound
         if upperbound - cost < 1.0 - 1e-2 {
             // this will also cause a problem when the upperbound in the user input is the optimal value
@@ -151,9 +166,9 @@ pub fn lr(node: Node, instance: &Instance, upperbound: f64) -> Node {
     }
 
     best_node.ban_from_child = if best_node.solution.is_none() {
-        // if best edges is empty at this point something went wrong for now I will panic
-        // anyway if the code panics at this point it's mostly likely that the upperbound is way
-        // higher than the actual optimal value
+        // if best edges is empty at this point something went wrong
+        // anyways if the code panics at this point it's mostly likely that the upperbound is way
+        // higher than the actual optimal value, mostly you would want to treat this instead of unwraping
         Some(
             best_edges
                 .into_iter()
