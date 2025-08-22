@@ -1,8 +1,6 @@
 use crate::solution::*;
 use instance_reader::Instance;
-use rand::{Rng, rng};
-
-use super::subsequence::{SubsequenceMatrix, update_solution};
+use rand::Rng;
 
 // Auxiliary data structure for best insertion
 struct InsertionInfo {
@@ -26,22 +24,22 @@ fn calculate_insertion_cost(s: &Solution, cl: &[usize], instance: &Instance) -> 
 }
 
 // Constructs a solution with a grasp algorithm using best insertion
-pub fn construction(subseq_matrix: &mut SubsequenceMatrix, instance: &Instance) -> Solution {
+pub fn construction(instance: &Instance) -> Solution {
     // cl is the candidate list to insert into the solution
+
+    let mut rng = rand::rng();
+
     let mut cl: Vec<usize> = (1..instance.dimension).collect();
-    let mut s = Solution {
-        sequence: vec![0],
-        value: u32::MAX,
-    };
+    let mut s = Solution::new(vec![0], u32::MAX, instance);
 
     while !cl.is_empty() {
-        let mut insertion_cost = calculate_insertion_cost(&s, &cl, instance);
+        let mut insertion_cost = calculate_insertion_cost(&s, &cl, &instance);
         insertion_cost.sort_unstable_by_key(|x| x.value);
 
         // Choose a random index from insertion cost but the first values have more priority
-        let alpha: f64 = rng().random_range(1e-10..1.0);
+        let alpha: f64 = rng.random_range(1e-10..0.25);
         let chosen =
-            (rng().random::<u32>() % (alpha * insertion_cost.len() as f64).ceil() as u32) as usize;
+            (rng.random::<u32>() % (alpha * insertion_cost.len() as f64).ceil() as u32) as usize;
 
         let chosen_insertion = &insertion_cost[chosen];
 
@@ -51,7 +49,7 @@ pub fn construction(subseq_matrix: &mut SubsequenceMatrix, instance: &Instance) 
     }
 
     s.sequence.push(0);
-    update_solution(&mut s, subseq_matrix, instance, None);
+    s.update(None);
 
     s
 }

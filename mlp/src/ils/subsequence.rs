@@ -1,7 +1,6 @@
-use crate::solution::Solution;
 use instance_reader::Instance;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct Subsequence {
     t: u32,
     pub c: u32,
@@ -11,108 +10,111 @@ pub struct Subsequence {
 }
 
 impl Subsequence {
-    pub fn concatenate(&self, other: &Subsequence, instance: &Instance) -> Subsequence {
+    fn concatenate(mut self, other: &Subsequence, instance: &Instance) -> Subsequence {
         let distance = instance.distance(self.last, other.first);
-        let t = self.t + distance + other.t;
-        let c = self.c + other.w * (self.t + distance) + other.c;
-        let w = self.w + other.w;
-        let first = self.first;
-        let last = other.last;
+        self.c += other.w * (self.t + distance) + other.c;
+        self.t += distance + other.t;
+        self.w += other.w;
+        self.last = other.last;
 
-        Subsequence {
-            t,
-            c,
-            w,
-            first,
-            last,
-        }
+        self
     }
 
-    pub fn create_single_node(i: usize, s: &Solution) -> Self {
+    fn create_single_node(i: usize, sequence: &[usize]) -> Self {
         Self {
             t: 0,
             c: 0,
             w: if i == 0 { 0 } else { 1 },
-            first: s.sequence[i],
-            last: s.sequence[i],
+            first: sequence[i],
+            last: sequence[i],
         }
     }
 }
 
-pub struct SubsequenceMatrix {
+#[derive(Clone, Debug)]
+pub struct SubsequenceMatrix<'a> {
     matrix: Vec<Subsequence>,
     dimension: usize,
+    instance: &'a Instance,
 }
 
-impl SubsequenceMatrix {
-    pub fn from(dimension: usize) -> Self {
+pub struct SubsequenceConcatenator<'a> {
+    subsequence: Subsequence,
+    matrix: &'a SubsequenceMatrix<'a>,
+}
+
+impl<'a> SubsequenceConcatenator<'a> {
+    pub fn concatenate(mut self, i: usize, j: usize) -> SubsequenceConcatenator<'a> {
+        self.subsequence = self
+            .subsequence
+            .concatenate(self.matrix.get(i, j), &self.matrix.instance);
+
+        self
+    }
+
+    pub fn into_subsequence(self) -> Subsequence {
+        self.subsequence
+    }
+}
+
+impl<'a> SubsequenceMatrix<'a> {
+    pub fn from(instance: &'a Instance) -> Self {
+        let dimension = instance.dimension + 1;
         SubsequenceMatrix {
             matrix: vec![Default::default(); dimension * dimension],
             dimension,
+            instance,
         }
     }
 
     pub fn get(&self, i: usize, j: usize) -> &Subsequence {
         &self.matrix[(i * self.dimension) + j]
     }
+
     pub fn get_mut(&mut self, i: usize, j: usize) -> &mut Subsequence {
         &mut self.matrix[(i * self.dimension) + j]
     }
 
-    pub fn dimension(&self) -> usize {
-        self.dimension
-    }
-}
-
-// Ignore this clippy lint that triggers on the first loop
-// rewriting it using iter is needless complicated
-#[allow(clippy::needless_range_loop)]
-pub fn update_subsequences(
-    s: &Solution,
-    subseq_matrix: &mut SubsequenceMatrix,
-    instance: &Instance,
-    bounds: Option<(usize, usize)>,
-) {
-    let (begin, end) = bounds.unwrap_or((0, s.sequence.len() - 1));
-
-    // Single node subsequences
-    for i in begin..=end {
-        *subseq_matrix.get_mut(i, i) = Subsequence::create_single_node(i, s);
-    }
-
-    // Direct subsequences
-    for i in 0..=end {
-        let first_col = std::cmp::max(begin, i + 1);
-        for j in first_col..s.sequence.len() {
-            *subseq_matrix.get_mut(i, j) = subseq_matrix
-                .get(i, j - 1)
-                .concatenate(subseq_matrix.get(j, j), instance);
+    pub fn concatenator_for(&'a self, i: usize, j: usize) -> SubsequenceConcatenator<'a> {
+        SubsequenceConcatenator {
+            subsequence: self.get(i, j).clone(),
+            matrix: self,
         }
     }
 
-    // Reverse subsequences
-    for i in (begin..s.sequence.len()).rev() {
-        // last_col can be negative, and will make the range empty
-        let last_col = std::cmp::min(end as isize, i as isize - 1);
-        for j in (0..=last_col).rev() {
-            let j = j as usize;
-            *subseq_matrix.get_mut(i, j) = subseq_matrix
-                .get(i, j + 1)
-                .concatenate(subseq_matrix.get(j, j), instance);
+    pub fn update(&mut self, sequence: &[usize], bounds: Option<(usize, usize)>) {
+        let (begin, end) = bounds.unwrap_or((0, sequence.len() - 1));
+
+        // Single node subsequences
+        for i in begin..=end {
+            *self.get_mut(i, i) = Subsequence::create_single_node(i, sequence);
+        }
+
+        // Direct subsequences
+        for i in 0..=end {
+            let first_col = std::cmp::max(begin, i + 1);
+            for j in first_col..sequence.len() {
+                *self.get_mut(i, j) = self
+                    .concatenator_for(i, j - 1)
+                    .concatenate(j, j)
+                    .into_subsequence();
+            }
+        }
+
+        // Reverse subsequences
+        for i in (begin..sequence.len()).rev() {
+            let last_col = std::cmp::min(end as isize, i as isize - 1);
+            for j in (0..=last_col).rev() {
+                let j = j as usize;
+                *self.get_mut(i, j) = self
+                    .concatenator_for(i, j + 1)
+                    .concatenate(j, j)
+                    .into_subsequence();
+            }
         }
     }
-}
 
-pub fn extract_solution_cost(subseq_matrix: &SubsequenceMatrix) -> u32 {
-    subseq_matrix.get(0, subseq_matrix.dimension - 1).c
-}
-
-pub fn update_solution(
-    s: &mut Solution,
-    subseq_matrix: &mut SubsequenceMatrix,
-    instance: &Instance,
-    bounds: Option<(usize, usize)>,
-) {
-    update_subsequences(s, subseq_matrix, instance, bounds);
-    s.value = extract_solution_cost(subseq_matrix);
+    pub fn extract_solution_cost(&self) -> u32 {
+        self.get(0, self.dimension - 1).c
+    }
 }
