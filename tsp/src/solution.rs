@@ -1,16 +1,17 @@
 use instance_reader::Instance;
 
-#[derive(Debug, Clone, Default)]
-pub struct Solution {
+#[derive(Debug, Clone)]
+pub struct Solution<'a> {
     pub sequence: Vec<usize>,
     pub value: u32,
+    pub instance: &'a Instance,
 }
 
-impl Solution {
-    pub fn recalculate(&mut self, instance: &Instance) {
+impl<'a> Solution<'a> {
+    pub fn recalculate(&mut self) {
         let mut sum = 0;
         for v in self.sequence.windows(2) {
-            sum += instance.distance(v[0], v[1]);
+            sum += self.instance.distance(v[0], v[1]);
         }
         self.value = sum;
     }
