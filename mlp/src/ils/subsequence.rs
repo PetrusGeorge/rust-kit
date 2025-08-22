@@ -92,8 +92,10 @@ pub fn update_subsequences(
 
     // Reverse subsequences
     for i in (begin..s.sequence.len()).rev() {
-        let last_col = std::cmp::min(end as isize, i.saturating_sub(1) as isize) as usize;
+        // last_col can be negative, and will make the range empty
+        let last_col = std::cmp::min(end as isize, i as isize - 1);
         for j in (0..=last_col).rev() {
+            let j = j as usize;
             *subseq_matrix.get_mut(i, j) = subseq_matrix
                 .get(i, j + 1)
                 .concatenate(subseq_matrix.get(j, j), instance);
