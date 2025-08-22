@@ -3,9 +3,9 @@ use instance_reader::Instance;
 
 #[derive(Default, Clone)]
 pub struct Subsequence {
-    t: usize,
-    pub c: usize,
-    w: usize,
+    t: u32,
+    pub c: u32,
+    w: u32,
     first: usize,
     last: usize,
 }
@@ -92,9 +92,8 @@ pub fn update_subsequences(
 
     // Reverse subsequences
     for i in (begin..s.sequence.len()).rev() {
-        let last_col = std::cmp::min(end as isize, i as isize - 1);
+        let last_col = std::cmp::min(end as isize, i.saturating_sub(1) as isize) as usize;
         for j in (0..=last_col).rev() {
-            let j = j as usize;
             *subseq_matrix.get_mut(i, j) = subseq_matrix
                 .get(i, j + 1)
                 .concatenate(subseq_matrix.get(j, j), instance);
@@ -102,7 +101,7 @@ pub fn update_subsequences(
     }
 }
 
-pub fn extract_solution_cost(subseq_matrix: &SubsequenceMatrix) -> usize {
+pub fn extract_solution_cost(subseq_matrix: &SubsequenceMatrix) -> u32 {
     subseq_matrix.get(0, subseq_matrix.dimension - 1).c
 }
 

@@ -34,11 +34,11 @@ fn convert_solution(s_in: &[Vec<usize>], cost: f64) -> Solution {
 
     Solution {
         sequence,
-        value: cost.round() as usize,
+        value: cost.round() as u32,
     }
 }
 
-pub fn bnb_lr(instance: &Instance, upperbound: usize) -> Option<Solution> {
+pub fn bnb_lr(instance: &Instance, upperbound: u32) -> Option<Solution> {
     let mut tree = VecDeque::new();
     let mut upperbound = upperbound as f64;
     let mut best_node = None;

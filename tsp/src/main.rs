@@ -16,9 +16,9 @@ fn main() {
     let instance = instance_reader::read_data(&args[1]);
 
     let max_iter_ils = if instance.dimension < 150 {
-        instance.dimension
+        instance.dimension as u32
     } else {
-        instance.dimension / 2
+        (instance.dimension / 2) as u32
     };
 
     println!("{}", instance.name);

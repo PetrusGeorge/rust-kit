@@ -11,11 +11,11 @@ enum Searches {
 }
 
 fn best_swap(s: &mut Solution, instance: &Instance) -> bool {
-    let mut best_delta: isize = 0;
+    let mut best_delta = 0;
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
-    let c = |i: usize, j: usize| instance.distance(i, j) as isize;
+    let c = |i: usize, j: usize| instance.distance(i, j) as i32;
 
     let iter = s.sequence.windows(3).enumerate();
     for (i, window) in iter {
@@ -47,7 +47,7 @@ fn best_swap(s: &mut Solution, instance: &Instance) -> bool {
 
     if best_delta < 0 {
         s.sequence.swap(best_i, best_j);
-        s.value = (s.value as isize + best_delta) as usize;
+        s.value = (s.value as i32 + best_delta) as u32;
 
         return true;
     }
@@ -56,11 +56,11 @@ fn best_swap(s: &mut Solution, instance: &Instance) -> bool {
 }
 
 fn best_2opt(s: &mut Solution, instance: &Instance) -> bool {
-    let mut best_delta: isize = 0;
+    let mut best_delta = 0;
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
-    let c = |i: usize, j: usize| instance.distance(i, j) as isize;
+    let c = |i: usize, j: usize| instance.distance(i, j) as i32;
 
     let iter = s.sequence.windows(2).enumerate();
     for (i, window) in iter {
@@ -86,7 +86,7 @@ fn best_2opt(s: &mut Solution, instance: &Instance) -> bool {
 
     if best_delta < 0 {
         s.sequence[best_i..=best_j].reverse();
-        s.value = (s.value as isize + best_delta) as usize;
+        s.value = (s.value as i32 + best_delta) as u32;
 
         return true;
     }
@@ -95,11 +95,11 @@ fn best_2opt(s: &mut Solution, instance: &Instance) -> bool {
 }
 
 fn best_oropt(s: &mut Solution, block_size: usize, instance: &Instance) -> bool {
-    let mut best_delta: isize = 0;
+    let mut best_delta = 0;
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
-    let c = |i: usize, j: usize| instance.distance(i, j) as isize;
+    let c = |i: usize, j: usize| instance.distance(i, j) as i32;
 
     let iter = s.sequence.windows(block_size + 2).enumerate();
     for (i, window) in iter {
@@ -142,7 +142,7 @@ fn best_oropt(s: &mut Solution, block_size: usize, instance: &Instance) -> bool 
             s.sequence[(best_j + 1)..(best_i + block_size)].rotate_right(block_size);
         }
 
-        s.value = (s.value as isize + best_delta) as usize;
+        s.value = (s.value as i32 + best_delta) as u32;
 
         return true;
     }

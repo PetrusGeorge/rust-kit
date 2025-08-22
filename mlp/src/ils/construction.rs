@@ -7,7 +7,7 @@ use super::subsequence::{SubsequenceMatrix, update_solution};
 // Auxiliary data structure for best insertion
 struct InsertionInfo {
     cl_index: usize,
-    value: usize,
+    value: u32,
 }
 
 // Calculate every possible insertion from cl into the solution
@@ -31,7 +31,7 @@ pub fn construction(subseq_matrix: &mut SubsequenceMatrix, instance: &Instance) 
     let mut cl: Vec<usize> = (1..instance.dimension).collect();
     let mut s = Solution {
         sequence: vec![0],
-        value: usize::MAX,
+        value: u32::MAX,
     };
 
     while !cl.is_empty() {

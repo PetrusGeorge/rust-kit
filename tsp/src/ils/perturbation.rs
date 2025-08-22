@@ -20,7 +20,7 @@ pub fn perturbation(mut s: Solution, instance: &Instance) -> Solution {
     let back = rng().random_range(1..=(possibilities_before_i + possibilities_after_i))
         <= possibilities_before_i;
 
-    let mut j: usize;
+    let mut j;
 
     if back {
         j = rng().random_range(1..=possibilities_before_i);

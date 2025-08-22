@@ -16,7 +16,7 @@ fn main() {
     let instance = instance_reader::read_data(&args[1]);
 
     println!("{}", instance.name);
-    let s = ils(10, std::cmp::min(100, instance.dimension), &instance);
+    let s = ils(10, std::cmp::min(100, instance.dimension) as u32, &instance);
     println!("Solution: ");
     for v in s.sequence.iter().take(s.sequence.len() - 1) {
         print!("{v} -> ");

@@ -13,7 +13,7 @@ enum Searches {
 }
 
 fn best_swap(s: &mut Solution, subseq_matrix: &mut SubsequenceMatrix, instance: &Instance) -> bool {
-    let mut best_delta: isize = 0;
+    let mut best_delta = 0;
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
@@ -29,7 +29,7 @@ fn best_swap(s: &mut Solution, subseq_matrix: &mut SubsequenceMatrix, instance: 
                     instance,
                 );
 
-            let delta = sigma.c as isize - s.value as isize;
+            let delta = sigma.c as i32 - s.value as i32;
 
             if delta < best_delta {
                 best_delta = delta;
@@ -50,7 +50,7 @@ fn best_swap(s: &mut Solution, subseq_matrix: &mut SubsequenceMatrix, instance: 
 }
 
 fn best_2opt(s: &mut Solution, subseq_matrix: &mut SubsequenceMatrix, instance: &Instance) -> bool {
-    let mut best_delta: isize = 0;
+    let mut best_delta = 0;
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
@@ -64,7 +64,7 @@ fn best_2opt(s: &mut Solution, subseq_matrix: &mut SubsequenceMatrix, instance: 
                     instance,
                 );
 
-            let delta = sigma.c as isize - s.value as isize;
+            let delta = sigma.c as i32 - s.value as i32;
 
             if delta < best_delta {
                 best_delta = delta;
@@ -90,13 +90,13 @@ fn best_oropt(
     block_size: usize,
     instance: &Instance,
 ) -> bool {
-    let mut best_delta: isize = 0;
+    let mut best_delta = 0;
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
     for i in 1..s.sequence.len() - block_size {
         let mut check_delta = |sigma: Subsequence, j: usize| {
-            let delta = sigma.c as isize - s.value as isize;
+            let delta = sigma.c as i32 - s.value as i32;
 
             if delta < best_delta {
                 best_delta = delta;

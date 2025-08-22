@@ -89,7 +89,7 @@ fn closest_to_first_node(
 }
 
 pub fn lr(node: Node, instance: &Instance, upperbound: f64) -> Node {
-    const MAX_ITER: usize = 30;
+    const MAX_ITER: u32 = 30;
     const MIN_EPS: f64 = 1e-5;
 
     let mut best_node = node;
@@ -124,9 +124,9 @@ pub fn lr(node: Node, instance: &Instance, upperbound: f64) -> Node {
 
         let subgradients = edges
             .iter()
-            .map(|x| 2 - x.len() as isize)
-            .collect::<Vec<isize>>();
-        let sum_subgradient = subgradients.iter().map(|x| (x * x) as usize).sum::<usize>();
+            .map(|x| 2 - x.len() as i32)
+            .collect::<Vec<i32>>();
+        let sum_subgradient = subgradients.iter().map(|x| (x * x) as u32).sum::<u32>();
         // Assign feasible solution and end algorithm
         if sum_subgradient == 0 {
             best_node.value = cost;

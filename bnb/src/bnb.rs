@@ -13,7 +13,7 @@ pub enum SearchMode {
 struct Node {
     forbidden_arcs: Vec<(usize, usize)>,
     smallest_subtour: Vec<usize>,
-    value: usize,
+    value: u32,
 }
 
 fn find_smallest_subtour(solution: &HungarianResult) -> Vec<usize> {
@@ -73,11 +73,11 @@ fn set_matrix(forbidden_arcs: &[(usize, usize)], instance: &Instance) -> Vec<Vec
 
 pub fn bnb(instance: &Instance, mode: SearchMode) -> Solution {
     let mut tree = VecDeque::new();
-    let mut upperbound = usize::MAX;
+    let mut upperbound = u32::MAX;
     let mut best_node = Node {
         forbidden_arcs: Vec::new(),
         smallest_subtour: Vec::new(),
-        value: usize::MAX,
+        value: u32::MAX,
     };
 
     // Solve root node
@@ -85,7 +85,7 @@ pub fn bnb(instance: &Instance, mode: SearchMode) -> Solution {
     let h_result = h.solve();
     let smallest_subtour = find_smallest_subtour(&h_result);
     let forbidden_arcs = Vec::new();
-    let value = h_result.cost as usize;
+    let value = h_result.cost as u32;
     tree.push_back(Node {
         forbidden_arcs,
         smallest_subtour,
@@ -115,12 +115,12 @@ pub fn bnb(instance: &Instance, mode: SearchMode) -> Solution {
             let mut h = Hungarian::new(&matrix, HungarianMode::MinimizeCost);
             let h_result = h.solve();
             let smallest_subtour = find_smallest_subtour(&h_result);
-            let value = h_result.cost;
-            if (value as usize) < upperbound {
+            let value = h_result.cost as u32;
+            if value < upperbound {
                 tree.push_back(Node {
                     forbidden_arcs,
                     smallest_subtour,
-                    value: value as usize,
+                    value,
                 });
             }
         }

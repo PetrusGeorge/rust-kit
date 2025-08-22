@@ -1,31 +1,31 @@
 use tsplib::{EdgeWeight, EdgeWeightType, NodeCoord, Type};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Instance {
     pub dimension: usize,
     pub name: String,
-    matrix: Vec<usize>,
+    matrix: Vec<u32>,
 }
 
 impl Instance {
     #[inline]
-    pub fn distance(&self, i: usize, j: usize) -> usize {
+    pub fn distance(&self, i: usize, j: usize) -> u32 {
         self.matrix[(i * self.dimension) + j]
     }
 
-    pub fn matrix_slice(&self) -> &[usize] {
+    pub fn matrix_slice(&self) -> &[u32] {
         &self.matrix
     }
 }
 
-fn upper_to_full(vec: &[usize], n: usize) -> Vec<usize> {
+fn upper_to_full(vec: &[usize], n: usize) -> Vec<u32> {
     let mut matrix = vec![0; n * n];
 
     let mut index = 0;
     for row in 0..n {
         for col in row + 1..n {
-            matrix[(row * n) + col] = vec[index];
-            matrix[(col * n) + row] = vec[index];
+            matrix[(row * n) + col] = vec[index] as u32;
+            matrix[(col * n) + row] = vec[index] as u32;
             index += 1;
         }
     }
@@ -33,14 +33,14 @@ fn upper_to_full(vec: &[usize], n: usize) -> Vec<usize> {
     matrix
 }
 
-fn upperdiag_to_full(vec: &[usize], n: usize) -> Vec<usize> {
+fn upperdiag_to_full(vec: &[usize], n: usize) -> Vec<u32> {
     let mut matrix = vec![0; n * n];
 
     let mut index = 0;
     for row in 0..n {
         for col in row..n {
-            matrix[(row * n) + col] = vec[index];
-            matrix[(col * n) + row] = vec[index];
+            matrix[(row * n) + col] = vec[index] as u32;
+            matrix[(col * n) + row] = vec[index] as u32;
             index += 1;
         }
     }
@@ -48,14 +48,14 @@ fn upperdiag_to_full(vec: &[usize], n: usize) -> Vec<usize> {
     matrix
 }
 
-fn lower_to_full(vec: &[usize], n: usize) -> Vec<usize> {
+fn lower_to_full(vec: &[usize], n: usize) -> Vec<u32> {
     let mut matrix = vec![0; n * n];
 
     let mut index = 0;
     for row in 1..n {
         for col in 0..row {
-            matrix[(row * n) + col] = vec[index];
-            matrix[(col * n) + row] = vec[index];
+            matrix[(row * n) + col] = vec[index] as u32;
+            matrix[(col * n) + row] = vec[index] as u32;
             index += 1;
         }
     }
@@ -63,14 +63,14 @@ fn lower_to_full(vec: &[usize], n: usize) -> Vec<usize> {
     matrix
 }
 
-fn lowerdiag_to_full(vec: &[usize], n: usize) -> Vec<usize> {
+fn lowerdiag_to_full(vec: &[usize], n: usize) -> Vec<u32> {
     let mut matrix = vec![0; n * n];
 
     let mut index = 0;
     for row in 0..n {
         for col in 0..=row {
-            matrix[(row * n) + col] = vec[index];
-            matrix[(col * n) + row] = vec[index];
+            matrix[(row * n) + col] = vec[index] as u32;
+            matrix[(col * n) + row] = vec[index] as u32;
             index += 1;
         }
     }
@@ -78,14 +78,14 @@ fn lowerdiag_to_full(vec: &[usize], n: usize) -> Vec<usize> {
     matrix
 }
 
-fn euc_2d(coords: &[(usize, f32, f32)]) -> Vec<usize> {
+fn euc_2d(coords: &[(usize, f32, f32)]) -> Vec<u32> {
     let n = coords.len();
     let mut matrix = vec![0; n * n];
 
     let calc_dist_euc = |i: usize, j: usize| {
         (((coords[i].1 - coords[j].1).powf(2.0) + (coords[i].2 - coords[j].2).powf(2.0)).sqrt()
             + 0.5)
-            .floor() as usize
+            .floor() as u32
     };
 
     for (index, value) in matrix.iter_mut().enumerate() {
@@ -97,14 +97,14 @@ fn euc_2d(coords: &[(usize, f32, f32)]) -> Vec<usize> {
     matrix
 }
 
-fn ceil_2d(coords: &[(usize, f32, f32)]) -> Vec<usize> {
+fn ceil_2d(coords: &[(usize, f32, f32)]) -> Vec<u32> {
     let n = coords.len();
     let mut matrix = vec![0; n * n];
 
     let calc_dist_ceil = |i: usize, j: usize| {
         ((coords[i].1 - coords[j].1).powf(2.0) + (coords[i].2 - coords[j].2).powf(2.0))
             .sqrt()
-            .ceil() as usize
+            .ceil() as u32
     };
 
     for (index, value) in matrix.iter_mut().enumerate() {
@@ -116,7 +116,7 @@ fn ceil_2d(coords: &[(usize, f32, f32)]) -> Vec<usize> {
     matrix
 }
 
-fn att(coords: &[(usize, f32, f32)]) -> Vec<usize> {
+fn att(coords: &[(usize, f32, f32)]) -> Vec<u32> {
     let n = coords.len();
     let mut matrix = vec![0; n * n];
 
@@ -125,7 +125,7 @@ fn att(coords: &[(usize, f32, f32)]) -> Vec<usize> {
             / 10.0)
             .sqrt();
 
-        let rounded = (euc + 0.5).floor() as usize;
+        let rounded = (euc + 0.5).floor() as u32;
 
         if (rounded as f32) < euc {
             rounded + 1
@@ -143,7 +143,7 @@ fn att(coords: &[(usize, f32, f32)]) -> Vec<usize> {
     matrix
 }
 
-fn geo(coords: &[(usize, f32, f32)]) -> Vec<usize> {
+fn geo(coords: &[(usize, f32, f32)]) -> Vec<u32> {
     use std::f32::consts::PI;
     let n = coords.len();
     let mut matrix = vec![0; n * n];
@@ -166,7 +166,7 @@ fn geo(coords: &[(usize, f32, f32)]) -> Vec<usize> {
 
         let distance = RRR * ((0.5 * ((1.0 + q1) * q2 - (1.0 - q1) * q3)).acos());
 
-        (distance + 1.0) as usize
+        (distance + 1.0) as u32
     };
 
     for (index, value) in matrix.iter_mut().enumerate() {
@@ -204,7 +204,7 @@ pub fn read_data(file_path: &str) -> Instance {
             .edge_weight
             .expect("Instance does't supply edge weight format in explicit type");
         match matrix_type {
-            FullMatrix(vec) => vec,
+            FullMatrix(vec) => vec.into_iter().map(|x| x as u32).collect(),
             UpperRow(vec) => upper_to_full(&vec, dimension),
             LowerRow(vec) => lower_to_full(&vec, dimension),
             UpperDiagRow(vec) => upperdiag_to_full(&vec, dimension),

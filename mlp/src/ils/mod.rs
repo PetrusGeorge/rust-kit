@@ -10,9 +10,9 @@ use local_search::local_search;
 use perturbation::perturbation;
 use subsequence::SubsequenceMatrix;
 
-pub fn ils(max_iter: usize, max_iter_ils: usize, instance: &Instance) -> Solution {
+pub fn ils(max_iter: u32, max_iter_ils: u32, instance: &Instance) -> Solution {
     let mut best = Solution {
-        value: usize::MAX,
+        value: u32::MAX,
         ..Default::default()
     };
     // let mut subseq_matrix =

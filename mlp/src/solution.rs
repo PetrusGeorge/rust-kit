@@ -1,7 +1,7 @@
 #[derive(Debug, Clone, Default)]
 pub struct Solution {
     pub sequence: Vec<usize>,
-    pub value: usize,
+    pub value: u32,
 }
 
 impl Solution {

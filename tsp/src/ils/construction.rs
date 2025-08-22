@@ -6,7 +6,11 @@ use rand::{Rng, rng};
 struct InsertionInfo {
     cl_index: usize,
     removed_edge: usize,
-    value: usize,
+
+    // Some instances may not respect triangular inequality
+    // because of numeric imprecision
+    // meaning -1 is a possible value
+    value: i32,
 }
 
 // Calculate every possible insertion from cl into the solution
@@ -14,12 +18,12 @@ fn calculate_insertion_cost(s: &Solution, cl: &[usize], instance: &Instance) -> 
     let mut insertion_cost: Vec<InsertionInfo> =
         Vec::with_capacity(cl.len() * (s.sequence.len() - 1));
 
+    let c = |i, j| instance.distance(i, j) as i32;
     for a in 0..(s.sequence.len() - 1) {
         let i = s.sequence[a];
         let j = s.sequence[a + 1];
         for (cl_index, inserted_node) in cl.iter().enumerate() {
-            let value = instance.distance(i, *inserted_node) + instance.distance(*inserted_node, j)
-                - instance.distance(i, j);
+            let value = c(i, *inserted_node) + c(*inserted_node, j) - c(i, j);
 
             insertion_cost.push(InsertionInfo {
                 cl_index,
@@ -46,7 +50,7 @@ fn choose_three_random(cl: &mut Vec<usize>, instance: &Instance) -> Solution {
 
     let mut s = Solution {
         sequence,
-        value: usize::MAX,
+        value: u32::MAX,
     };
 
     s.recalculate(instance);
@@ -76,7 +80,7 @@ pub fn construction(instance: &Instance) -> Solution {
 
         cl.swap_remove(chosen_insertion.cl_index);
 
-        s.value += chosen_insertion.value;
+        s.value = (s.value as i32 + chosen_insertion.value) as u32;
     }
 
     s
