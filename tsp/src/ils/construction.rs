@@ -1,6 +1,6 @@
 use crate::solution::*;
 use instance_reader::Instance;
-use rand::{Rng, rng};
+use rand::Rng;
 
 // Auxiliary data structure for best insertion
 struct InsertionInfo {
@@ -14,11 +14,11 @@ struct InsertionInfo {
 }
 
 // Calculate every possible insertion from cl into the solution
-fn calculate_insertion_cost(s: &Solution, cl: &[usize], instance: &Instance) -> Vec<InsertionInfo> {
+fn calculate_insertion_cost(s: &Solution, cl: &[usize]) -> Vec<InsertionInfo> {
     let mut insertion_cost: Vec<InsertionInfo> =
         Vec::with_capacity(cl.len() * (s.sequence.len() - 1));
 
-    let c = |i, j| instance.distance(i, j) as i32;
+    let c = |i, j| s.instance.distance(i, j) as i32;
     for a in 0..(s.sequence.len() - 1) {
         let i = s.sequence[a];
         let j = s.sequence[a + 1];
@@ -36,11 +36,13 @@ fn calculate_insertion_cost(s: &Solution, cl: &[usize], instance: &Instance) -> 
     insertion_cost
 }
 
-fn choose_three_random(cl: &mut Vec<usize>, instance: &Instance) -> Solution {
+fn choose_three_random<'a>(cl: &mut Vec<usize>, instance: &'a Instance) -> Solution<'a> {
+    let mut rng = rand::rng();
+
     // Choose 3 random clients
     let mut sequence = Vec::new();
     for _ in 0..3 {
-        let index = rng().random_range(0..cl.len());
+        let index = rng.random_range(0..cl.len());
         sequence.push(cl.swap_remove(index));
     }
 
@@ -51,27 +53,30 @@ fn choose_three_random(cl: &mut Vec<usize>, instance: &Instance) -> Solution {
     let mut s = Solution {
         sequence,
         value: u32::MAX,
+        instance,
     };
 
-    s.recalculate(instance);
+    s.recalculate();
 
     s
 }
 
 // Constructs a solution with a grasp algorithm using best insertion
-pub fn construction(instance: &Instance) -> Solution {
+pub fn construction<'a>(instance: &'a Instance) -> Solution<'a> {
+    let mut rng = rand::rng();
+
     // cl is the candidate list to insert into the solution
     let mut cl: Vec<usize> = (1..instance.dimension).collect();
     let mut s = choose_three_random(&mut cl, instance);
 
     while !cl.is_empty() {
-        let mut insertion_cost = calculate_insertion_cost(&s, &cl, instance);
+        let mut insertion_cost = calculate_insertion_cost(&s, &cl);
         insertion_cost.sort_unstable_by_key(|x| x.value);
 
         // Choose a random index from insertion cost but the first values have more priority
-        let alpha: f64 = rng().random_range(1e-10..1.0);
+        let alpha: f64 = rng.random_range(1e-10..1.0);
         let chosen =
-            (rng().random::<u32>() % (alpha * insertion_cost.len() as f64).ceil() as u32) as usize;
+            (rng.random::<u32>() % (alpha * insertion_cost.len() as f64).ceil() as u32) as usize;
 
         let chosen_insertion = &insertion_cost[chosen];
 

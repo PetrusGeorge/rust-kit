@@ -1,7 +1,6 @@
 use rand::{Rng, rng};
 
 use crate::solution::Solution;
-use instance_reader::Instance;
 
 #[derive(Clone)]
 enum Searches {
@@ -10,12 +9,12 @@ enum Searches {
     OrOpt(usize),
 }
 
-fn best_swap(s: &mut Solution, instance: &Instance) -> bool {
+fn best_swap(s: &mut Solution) -> bool {
     let mut best_delta = 0;
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
-    let c = |i: usize, j: usize| instance.distance(i, j) as i32;
+    let c = |i: usize, j: usize| s.instance.distance(i, j) as i32;
 
     let iter = s.sequence.windows(3).enumerate();
     for (i, window) in iter {
@@ -55,12 +54,12 @@ fn best_swap(s: &mut Solution, instance: &Instance) -> bool {
     false
 }
 
-fn best_2opt(s: &mut Solution, instance: &Instance) -> bool {
+fn best_2opt(s: &mut Solution) -> bool {
     let mut best_delta = 0;
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
-    let c = |i: usize, j: usize| instance.distance(i, j) as i32;
+    let c = |i: usize, j: usize| s.instance.distance(i, j) as i32;
 
     let iter = s.sequence.windows(2).enumerate();
     for (i, window) in iter {
@@ -94,12 +93,12 @@ fn best_2opt(s: &mut Solution, instance: &Instance) -> bool {
     false
 }
 
-fn best_oropt(s: &mut Solution, block_size: usize, instance: &Instance) -> bool {
+fn best_oropt(s: &mut Solution, block_size: usize) -> bool {
     let mut best_delta = 0;
     let mut best_i = usize::MAX;
     let mut best_j = usize::MAX;
 
-    let c = |i: usize, j: usize| instance.distance(i, j) as i32;
+    let c = |i: usize, j: usize| s.instance.distance(i, j) as i32;
 
     let iter = s.sequence.windows(block_size + 2).enumerate();
     for (i, window) in iter {
@@ -150,7 +149,7 @@ fn best_oropt(s: &mut Solution, block_size: usize, instance: &Instance) -> bool 
     false
 }
 
-pub fn local_search(s: &mut Solution, instance: &Instance) {
+pub fn local_search(s: &mut Solution) {
     use Searches::*;
     const SEARCHES: [Searches; 5] = [Swap, TwoOpt, OrOpt(1), OrOpt(2), OrOpt(3)];
 
@@ -161,9 +160,9 @@ pub fn local_search(s: &mut Solution, instance: &Instance) {
         let search_type = &nl[chosen];
 
         let improved = match search_type {
-            Swap => best_swap(s, instance),
-            TwoOpt => best_2opt(s, instance),
-            OrOpt(block_size) => best_oropt(s, *block_size, instance),
+            Swap => best_swap(s),
+            TwoOpt => best_2opt(s),
+            OrOpt(block_size) => best_oropt(s, *block_size),
         };
 
         if improved {

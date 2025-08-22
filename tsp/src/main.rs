@@ -14,15 +14,16 @@ fn main() {
     }
 
     let instance = instance_reader::read_data(&args[1]);
+    let num_threads = std::thread::available_parallelism().unwrap().get();
 
     let max_iter_ils = if instance.dimension < 150 {
-        instance.dimension as u32
+        instance.dimension
     } else {
-        (instance.dimension / 2) as u32
-    };
+        instance.dimension / 2
+    } as u32;
 
     println!("{}", instance.name);
-    let s = ils(50, max_iter_ils, &instance);
+    let s = ils(50, max_iter_ils, num_threads, &instance);
     println!("Solution: ");
     for v in s.sequence.iter().take(s.sequence.len() - 1) {
         print!("{v} -> ");
