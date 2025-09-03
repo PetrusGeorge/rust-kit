@@ -3,7 +3,7 @@ use std::collections::{BTreeSet, VecDeque};
 
 use instance_reader::Instance;
 
-use crate::lr::lr;
+use crate::lr::{Node, lr};
 use crate::solution::Solution;
 
 fn convert_solution(s_in: &[Vec<usize>], cost: f64) -> Solution {
@@ -44,7 +44,12 @@ pub fn bnb_lr(instance: &Instance, upperbound: u32) -> Option<Solution> {
     let mut best_node = None;
 
     // Solve root node
-    tree.push_back(lr(Default::default(), instance, upperbound));
+    let root = lr(Node::default(), instance, upperbound);
+    if root.solution.is_some() {
+        best_node = Some(root);
+    } else {
+        tree.push_back(root);
+    }
 
     while let Some(node) = tree.pop_back() {
         // If this is NONE than the upperbound is either wrong or is the optimal value
@@ -67,7 +72,7 @@ pub fn bnb_lr(instance: &Instance, upperbound: u32) -> Option<Solution> {
             if new_node.value < upperbound {
                 // Is node feasible?
                 if new_node.solution.is_some() {
-                    upperbound = node.value;
+                    upperbound = new_node.value;
                     best_node = Some(new_node);
                 } else {
                     tree.push_back(new_node);
